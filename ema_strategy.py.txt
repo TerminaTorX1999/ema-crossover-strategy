@@ -1,0 +1,33 @@
+import yfinance as yf
+import pandas as pd
+import numpy as np
+
+# Download data
+df = yf.download("^FTSE", start="2018-01-01", end="2024-12-31")
+
+# Use Adjusted Close as price
+df = df[['Close']].rename(columns={'Close': 'price'})
+
+# Calculate EMAs
+df['EMA20'] = df['price'].ewm(span=20, adjust=False).mean()
+df['EMA50'] = df['price'].ewm(span=50, adjust=False).mean()
+
+# Generate signal: 1 if EMA20 > EMA50 else 0
+df['signal'] = np.where(df['EMA20'] > df['EMA50'], 1, 0)
+
+# Shift signal by 1 to avoid lookahead bias (trade happens next day)
+df['signal'] = df['signal'].shift(1)
+
+# Calculate daily returns
+df['returns'] = df['price'].pct_change()
+
+# Strategy returns: signal * returns (only earn returns when signal=1)
+df['strategy_returns'] = df['signal'] * df['returns']
+
+# Calculate cumulative returns for buy & hold and strategy
+df['cum_returns'] = (1 + df['returns']).cumprod() - 1
+df['cum_strategy_returns'] = (1 + df['strategy_returns']).cumprod() - 1
+
+# Final results
+print(f"Buy & Hold Total Return: {df['cum_returns'].iloc[-1]:.2%}")
+print(f"EMA Crossover Strategy Total Return: {df['cum_strategy_returns'].iloc[-1]:.2%}")
