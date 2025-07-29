@@ -1,1 +1,1 @@
-# ema-crossover-strategy
+This repository contains a simple Python script implementing a basic trading strategy using the 20-day and 50-day Exponential Moving Averages (EMA). The strategy generates buy signals when the 20 EMA crosses above the 50 EMA and stays out of the market otherwise. It also compares the strategy's performance against a buy-and-hold approach using historical price data.
